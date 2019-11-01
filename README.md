@@ -1,8 +1,18 @@
 # CronSwanson
 
-CronSwanson can help if you have many systems running the same cron job, but you
-don't want them all to start at exactly the same time. (To prevent daily load
-spikes at midnight, as every single app starts its maintenance cron jobs.)
+`CronSwanson` helps schedule cron jobs.
+
+![Never half-ass two things.](whole-ass.jpg)
+
+If you've ever had load spikes when many applications all starting the same
+cron job at the same time, `CronSwanson` can help you.
+
+The library generates crontab schedule strings which are consistent (they aren't
+random) but which are fuzzed/shifted depending on some input.
+
+## Build Status
+
+[![Build Status](https://travis-ci.org/alexdean/cron_swanson.svg?branch=master)](https://travis-ci.org/alexdean/cron_swanson)
 
 ## Installation
 
@@ -32,11 +42,29 @@ CronSwanson.schedule 'whiskey'
 #=> "33 18 * * *"
 ```
 
+**To keep two applications running the same job from executing at once**, make the
+application name part of the schedule key.
+
+```ruby
+CronSwanson.schedule 'application-a whiskey'
+#=> "4 19 * * *"
+
+CronSwanson.schedule 'application-b whiskey'
+#=> "11 7 * * *"
+```
+
 An `interval` (in seconds) can be supplied if you want a job to be run more than
 once/day. This `interval` must be a factor of 24 hours.
 
 ```ruby
 CronSwanson.schedule 'bacon', interval: 60 * 60 * 4
+#=> "26 2,6,10,14,18,22 * * *"
+```
+
+You can also use `ActiveSupport::Duration` instances.
+
+```ruby
+CronSwanson.schedule 'bacon', interval: 4.hours
 #=> "26 2,6,10,14,18,22 * * *"
 ```
 

@@ -15,7 +15,7 @@ module CronSwanson
   # offset within a time period
   #
   # if the interval is 6 hours, the returned offset will be some number of seconds
-  # from 0 to 6 hours.
+  # between 0 and 60 * 60 * 6 seconds (6 hours).
   #
   # @param [String] job_identifier
   #   if nil, method will determine this on its own
@@ -27,7 +27,7 @@ module CronSwanson
     # largest possible hex sha256 value
     max_sha256_value = (16**64).to_f
 
-    # what % of the max sha256 is the current app?
+    # what % of the max sha256 is the job_identifier?
     sha_pct_of_max_sha256 = sha.to_i(16) / max_sha256_value
 
     # apply that same % to the desired interval to get an offset
@@ -48,8 +48,6 @@ module CronSwanson
 
     # figure out how many times job will happen in a day
     runs_per_day = SECONDS_PER_DAY / interval
-
-    # raise if runs_per_day has a decimal component.
 
     run_at = Time.at(offset(job_identifier, interval: interval)).utc
 

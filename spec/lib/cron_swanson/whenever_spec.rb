@@ -116,5 +116,33 @@ RSpec.describe CronSwanson::Whenever do
         Whenever::JobList.new(schedule_rb_contents)
       }.to raise_error 'unknown_job_type is not defined. Call `job_type` to resolve this.'
     end
+
+    it 'passes roles option along to whenever' do
+      schedule_rb_contents = <<-EOF
+        CronSwanson::Whenever.add(self) do
+          rake 'all_roles'
+        end
+
+        CronSwanson::Whenever.add(self, roles: [:a]) do
+          rake 'a_only'
+        end
+
+        CronSwanson::Whenever.add(self, roles: [:b]) do
+          rake 'b_only'
+        end
+      EOF
+
+      job_list = Whenever::JobList.new(string: schedule_rb_contents, roles: [:a])
+      output = job_list.generate_cron_output
+      expect(output).to match(/^19 9 \* \* \*.*rake all_roles/)
+      expect(output).to match(/^59 7 \* \* \*.*rake a_only/)
+      expect(output).not_to match(/b_only/)
+
+      job_list = Whenever::JobList.new(string: schedule_rb_contents, roles: [:b])
+      output = job_list.generate_cron_output
+      expect(output).to match(/^19 9 \* \* \*.*rake all_roles/)
+      expect(output).to match(/^47 17 \* \* \*.*rake b_only/)
+      expect(output).not_to match(/a_only/)
+    end
   end
 end

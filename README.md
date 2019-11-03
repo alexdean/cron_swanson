@@ -108,7 +108,7 @@ end
 
 #### job types
 
-The block is evaluated by `whenever`, so any custom job types will work.
+Any custom job types which have been defined will work.
 
 ```ruby
 # in config/schedule.rb
@@ -116,6 +116,22 @@ job_type :ron, '/usr/bin/ron :task'
 
 CronSwanson::Whenever.add(self) do
   ron 'bacon whiskey'
+end
+```
+
+#### roles
+
+Roles are supported. See the [whenever documentation](https://github.com/javan/whenever#capistrano-roles)
+for more information on this.
+
+```ruby
+CronSwanson::Whenever.add(self) do
+  rake 'will_run_on_all_roles'
+end
+
+# will only be added to servers with the :restricted role
+CronSwanson::Whenever.add(self, roles: [:restricted]) do
+  rake 'restricted_only'
 end
 ```
 

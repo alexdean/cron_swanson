@@ -72,10 +72,16 @@ CronSwanson.schedule 'bacon', interval: 4.hours
 
 `CronSwanson` is built to integrate with the fantastic [whenever](https://github.com/javan/whenever) gem.
 
+`CronSwanson::Whenever.add` will calculate a run time for jobs by hashing the text
+of the job definitions in the given block.
+
+**NOTE**: This means that if you change the jobs in the block, you will also change the schedule time
+for these jobs.
+
 #### Daily
 
 ```ruby
-# in the config/schedule.rb file
+# in config/schedule.rb
 CronSwanson::Whenever.add(self) do
   rake 'sample:job'
 end
@@ -87,7 +93,7 @@ determined by `CronSwanson`.
 #### Multiple times/day
 
 ```ruby
-# in the config/schedule.rb file
+# in config/schedule.rb
 
 # with ActiveSupport
 CronSwanson::Whenever.add(self, interval: 4.hours) do
@@ -112,16 +118,6 @@ CronSwanson::Whenever.add(self) do
   ron 'bacon whiskey'
 end
 ```
-
-#### Limitation
-
-The whenever integration code currently derives a scheduled time from the source
-location of the `add` call. This means that moving the `.add` invocation to
-a different line in schedule.rb will cause it to be run at a different time.
-
-This limitation exists because I (currently) don't know of a way to inspect
-the contents of a block at runtime. If a way to do this can be found, I
-would prefer to calculate the time based on the block's contents.
 
 ## Development
 

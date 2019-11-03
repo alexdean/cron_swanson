@@ -18,7 +18,7 @@ RSpec.describe CronSwanson::Whenever do
       }.to raise_error(ArgumentError, 'provide a block containing jobs to schedule.')
     end
 
-    it 'schedules a job daily by default' do
+    it 'schedules a daily job by default' do
       schedule_rb_contents = <<-EOF
         CronSwanson::Whenever.add(self) do
           rake 'test:job'
@@ -28,10 +28,36 @@ RSpec.describe CronSwanson::Whenever do
       job_list = Whenever::JobList.new(schedule_rb_contents)
       output = job_list.generate_cron_output
 
-      expect(output).to match(/^38 2 \* \* \*.*rake test:job/)
+      expect(output).to match(/^27 12 \* \* \*.*rake test:job/)
     end
 
-    it 'can schedule multiple jobs like normal whenever can' do
+    it 'schedules a job at the given interval' do
+      schedule_rb_contents = <<-EOF
+        CronSwanson::Whenever.add(self, interval: 60 * 60 * 4) do
+          rake 'test:job'
+        end
+      EOF
+
+      job_list = Whenever::JobList.new(schedule_rb_contents)
+      output = job_list.generate_cron_output
+
+      expect(output).to match(/^4 2,6,10,14,18,22 \* \* \*.*rake test:job/)
+    end
+
+    it 'understands ActiveSupport::Duration instances for interval parameter' do
+      schedule_rb_contents = <<-EOF
+        CronSwanson::Whenever.add(self, interval: 4.hours) do
+          rake 'test:job'
+        end
+      EOF
+
+      job_list = Whenever::JobList.new(schedule_rb_contents)
+      output = job_list.generate_cron_output
+
+      expect(output).to match(/^4 2,6,10,14,18,22 \* \* \*.*rake test:job/)
+    end
+
+    it 'schedules multiple jobs in the same block at the same time' do
       schedule_rb_contents = <<-EOF
         CronSwanson::Whenever.add(self) do
           rake 'test:job'
@@ -42,11 +68,11 @@ RSpec.describe CronSwanson::Whenever do
       job_list = Whenever::JobList.new(schedule_rb_contents)
       output = job_list.generate_cron_output
 
-      expect(output).to match(/^38 2 \* \* \*.*rake test:job/)
-      expect(output).to match(/^38 2 \* \* \*.*rake other:job/)
+      expect(output).to match(/^28 3 \* \* \*.*rake test:job/)
+      expect(output).to match(/^28 3 \* \* \*.*rake other:job/)
     end
 
-    it 'schedules multiple add blocks at distinct times' do
+    it 'schedules multiple add blocks at distinct times based on their contents' do
       schedule_rb_contents = <<-EOF
         CronSwanson::Whenever.add(self) do
           rake 'test:job'
@@ -60,8 +86,8 @@ RSpec.describe CronSwanson::Whenever do
       job_list = Whenever::JobList.new(schedule_rb_contents)
       output = job_list.generate_cron_output
 
-      expect(output).to match(/^38 2 \* \* \*.*rake test:job/)
-      expect(output).to match(/^54 19 \* \* \*.*rake other:job/)
+      expect(output).to match(/^27 12 \* \* \*.*rake test:job/)
+      expect(output).to match(/^58 22 \* \* \*.*rake other:job/)
     end
 
     it 'understands custom job types' do
@@ -76,7 +102,19 @@ RSpec.describe CronSwanson::Whenever do
       job_list = Whenever::JobList.new(schedule_rb_contents)
       output = job_list.generate_cron_output
 
-      expect(output).to match(/^18 7 \* \* \*.*\/usr\/bin\/ron bacon whiskey/)
+      expect(output).to match(/^6 20 \* \* \*.*\/usr\/bin\/ron bacon whiskey/)
+    end
+
+    it 'raises if a job type is unknown' do
+      schedule_rb_contents = <<-EOF
+        CronSwanson::Whenever.add(self) do
+          unknown_job_type
+        end
+      EOF
+
+      expect {
+        Whenever::JobList.new(schedule_rb_contents)
+      }.to raise_error 'unknown_job_type is not defined. Call `job_type` to resolve this.'
     end
   end
 end

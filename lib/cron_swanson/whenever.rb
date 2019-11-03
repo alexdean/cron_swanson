@@ -1,6 +1,6 @@
 module CronSwanson
   # integration for the whenever gem: https://github.com/javan/whenever
-  module Whenever
+  class Whenever
     # CronSwanson integration for whenever
     #
     # The given block can use any job types understood by your whenever configuration.
@@ -37,15 +37,42 @@ module CronSwanson
     #   this can be referred to as `self`.
     # @param [Integer] interval how many seconds do you want between runs of this job
     def self.add(whenever_job_list, interval: CronSwanson.default_interval, &block)
+      @whenever_jobs = []
+      @whenever_job_list = whenever_job_list
+
       if !whenever_job_list.is_a?(::Whenever::JobList)
         raise ArgumentError, "supply a Whenever::JobList. (In schedule.rb code, use `self`.)"
       end
 
       raise ArgumentError, "provide a block containing jobs to schedule." if !block_given?
 
-      # TODO: ideally we'd hash the contents of the block, not the location it was defined at
-      schedule = CronSwanson.schedule(block.source_location, interval: interval)
+      # execute the block in the context of CronSwanson::Whenever (rather than the Whenever::JobList)
+      # so that we can intercept calls to `rake` and similar (via .method_missing below).
+      instance_eval(&block)
+
+      # make a schedule based on the contents of the jobs which were defined in the block
+      schedule_seed = @whenever_jobs.map do |job_config|
+        m, args, _block = *job_config
+        "#{m} #{args.join}"
+      end
+      schedule = CronSwanson.schedule(schedule_seed, interval: interval)
+
+      # now that we know when to schedule the jobs, actually pass the block to Whenever
       whenever_job_list.every(schedule, &Proc.new)
+
+      @whenever_job_list = nil
+    end
+
+    # during .add, we accumulate calls to whenever job types
+    # this allows us to make a schedule hash from the actual jobs which are defined.
+    def self.method_missing(m, *args, &block)
+      raise "method_missing invoked outside of .add" if !@whenever_job_list
+
+      if @whenever_job_list.respond_to?(m)
+        @whenever_jobs << [m, args, block]
+      else
+        raise "#{m} is not defined. Call `job_type` to resolve this."
+      end
     end
   end
 end

@@ -55,8 +55,8 @@ module CronSwanson
       raise ArgumentError, "provide a block containing jobs to schedule." if !block_given?
 
       # execute the block in the context of CronSwanson::Whenever (rather than in the context
-      # of the Whenever::JobList where it will be invoked.) so that we can intercept
-      # calls to `rake` and similar (via .method_missing below).
+      # of the Whenever::JobList where it will be invoked) so that we can intercept
+      # calls to `rake` and similar (via method_missing below).
       instance_eval(&block)
 
       # make a schedule based on the contents of the jobs which were defined in the block
@@ -79,7 +79,9 @@ module CronSwanson
     # during .add, we accumulate calls to whenever job types
     # this allows us to make a schedule hash from the actual jobs which are defined.
     def self.method_missing(m, *args, &block)
-      raise "method_missing invoked outside of .add" if !@whenever_job_list
+      if @whenever_job_list.nil? || @whenever_jobs.nil?
+        raise "#{self.name}.method_missing invoked outside of #{self.name}.add"
+      end
 
       if @whenever_job_list.respond_to?(m)
         @whenever_jobs << [m, args, block]

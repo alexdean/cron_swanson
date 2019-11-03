@@ -145,4 +145,12 @@ RSpec.describe CronSwanson::Whenever do
       expect(output).not_to match(/a_only/)
     end
   end
+
+  describe 'method_missing shenanigans' do
+    it 'should raise an error if invoked outside of an .add call' do
+      expect {
+        CronSwanson::Whenever.rake
+      }.to raise_error 'CronSwanson::Whenever.method_missing invoked outside of CronSwanson::Whenever.add'
+    end
+  end
 end

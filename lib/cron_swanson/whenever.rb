@@ -14,7 +14,7 @@ module CronSwanson
 
       @whenever_job_list = whenever_job_list
       @seed = seed
-      @in_add_method = false
+      @in_schedule_method = false
       @whenever_jobs = []
     end
 
@@ -24,7 +24,7 @@ module CronSwanson
     # See https://github.com/javan/whenever#define-your-own-job-types.
     #
     # CronSwanson currently uses the location it is invoked from in schedule.rb
-    # to calculate a job time. This means that moving the `.add` invocation to
+    # to calculate a job time. This means that moving the `.schedule` invocation to
     # a different line in schedule.rb will cause it to be run at a different time.
     #
     # This limitation exists because I (currently) don't know of a way to inspect
@@ -33,7 +33,7 @@ module CronSwanson
     #
     # @example run a job once/day
     #   # in config/schedule.rb
-    #   CronSwanson::Whenever.add(self) do
+    #   CronSwanson::Whenever.schedule(self) do
     #     rake 'job'
     #   end
     #
@@ -41,18 +41,18 @@ module CronSwanson
     #   # in config/schedule.rb
     #
     #   # with ActiveSupport
-    #   CronSwanson::Whenever.add(self, interval: 4.hours) do
+    #   CronSwanson::Whenever.schedule(self, interval: 4.hours) do
     #     rake 'job'
     #   end
     #
     #   # without ActiveSupport
-    #   CronSwanson::Whenever.add(self, interval: 60 * 60 * 4) do
+    #   CronSwanson::Whenever.schedule(self, interval: 60 * 60 * 4) do
     #     rake 'job'
     #   end
     #
     # @example run a job only on servers with a given role
     #   # in config/schedule.rb
-    #   CronSwanson::Whenever.add(self, roles: [:app]) do
+    #   CronSwanson::Whenever.schedule(self, roles: [:app]) do
     #     rake 'job'
     #   end
     #
@@ -61,8 +61,8 @@ module CronSwanson
     # @param [Integer, ActiveSupport::Duration] interval how many seconds do you want between runs
     #   of this job
     # @param [Array<Symbol>] roles capistrano roles that jobs in this block should be deployed to
-    def add(interval: CronSwanson.default_interval, roles: [], &block)
-      @in_add_method = true
+    def schedule(interval: CronSwanson.default_interval, roles: [], &block)
+      @in_schedule_method = true
       @whenever_jobs = []
 
       raise ArgumentError, "provide a block containing jobs to schedule." if !block_given?
@@ -77,7 +77,7 @@ module CronSwanson
         m, args, _block = *job_config
         "#{m} #{args.join}"
       end
-      schedule = CronSwanson.schedule(@seed + schedule_seed.join, interval: interval)
+      schedule = CronSwanson.build_schedule(@seed + schedule_seed.join, interval: interval)
 
       # now that we know when to schedule the jobs, actually pass the block to Whenever
       if roles.size > 0
@@ -86,14 +86,14 @@ module CronSwanson
         @whenever_job_list.every(schedule, &Proc.new)
       end
 
-      @in_add_method = false
+      @in_schedule_method = false
     end
 
-    # during .add, we accumulate calls to whenever job types
+    # during .schedule, we accumulate calls to whenever job types
     # this allows us to make a schedule hash from the actual jobs which are defined.
     def method_missing(m, *args, &block)
-      if !@in_add_method
-        raise "#{self.class.name}#method_missing invoked outside of #{self.class.name}#add"
+      if !@in_schedule_method
+        raise "#{self.class.name}#method_missing invoked outside of #{self.class.name}#schedule"
       end
 
       if @whenever_job_list.respond_to?(m)

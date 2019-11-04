@@ -17,17 +17,17 @@ RSpec.describe CronSwanson::Whenever do
     end
   end
 
-  describe '#add' do
+  describe '#schedule' do
     it 'raises an error if not given a block' do
       expect {
-        subject.add
+        subject.schedule
       }.to raise_error(ArgumentError, 'provide a block containing jobs to schedule.')
     end
 
     it 'schedules a daily job by default' do
       schedule_rb_contents = <<-EOF
         swanson = CronSwanson::Whenever.new(self)
-        swanson.add do
+        swanson.schedule do
           rake 'test:job'
         end
       EOF
@@ -41,7 +41,7 @@ RSpec.describe CronSwanson::Whenever do
     it 'schedules a job at the given interval' do
       schedule_rb_contents = <<-EOF
         swanson = CronSwanson::Whenever.new(self)
-        swanson.add(interval: 60 * 60 * 4) do
+        swanson.schedule(interval: 60 * 60 * 4) do
           rake 'test:job'
         end
       EOF
@@ -55,7 +55,7 @@ RSpec.describe CronSwanson::Whenever do
     it 'understands ActiveSupport::Duration instances for interval parameter' do
       schedule_rb_contents = <<-EOF
         swanson = CronSwanson::Whenever.new(self)
-        swanson.add(interval: 4.hours) do
+        swanson.schedule(interval: 4.hours) do
           rake 'test:job'
         end
       EOF
@@ -69,7 +69,7 @@ RSpec.describe CronSwanson::Whenever do
     it 'schedules multiple jobs in the same block at the same time' do
       schedule_rb_contents = <<-EOF
         swanson = CronSwanson::Whenever.new(self)
-        swanson.add do
+        swanson.schedule do
           rake 'test:job'
           rake 'other:job'
         end
@@ -82,14 +82,14 @@ RSpec.describe CronSwanson::Whenever do
       expect(output).to match(/^41 13 \* \* \*.*rake other:job/)
     end
 
-    it 'schedules multiple add blocks at distinct times based on their contents' do
+    it 'schedules multiple schedule blocks at distinct times based on their contents' do
       schedule_rb_contents = <<-EOF
         swanson = CronSwanson::Whenever.new(self)
-        swanson.add do
+        swanson.schedule do
           rake 'test:job'
         end
 
-        swanson.add do
+        swanson.schedule do
           rake 'other:job'
         end
       EOF
@@ -106,7 +106,7 @@ RSpec.describe CronSwanson::Whenever do
         swanson = CronSwanson::Whenever.new(self)
         job_type :ron, '/usr/bin/ron :task'
 
-        swanson.add do
+        swanson.schedule do
           ron 'bacon whiskey'
         end
       EOF
@@ -120,7 +120,7 @@ RSpec.describe CronSwanson::Whenever do
     it 'raises if a job type is unknown' do
       schedule_rb_contents = <<-EOF
         swanson = CronSwanson::Whenever.new(self)
-        swanson.add do
+        swanson.schedule do
           unknown_job_type
         end
       EOF
@@ -133,15 +133,15 @@ RSpec.describe CronSwanson::Whenever do
     it 'passes roles option along to whenever' do
       schedule_rb_contents = <<-EOF
         swanson = CronSwanson::Whenever.new(self)
-        swanson.add do
+        swanson.schedule do
           rake 'all_roles'
         end
 
-        swanson.add(roles: [:a]) do
+        swanson.schedule(roles: [:a]) do
           rake 'a_only'
         end
 
-        swanson.add(roles: [:b]) do
+        swanson.schedule(roles: [:b]) do
           rake 'b_only'
         end
       EOF
@@ -165,7 +165,7 @@ RSpec.describe CronSwanson::Whenever do
       seeds.each do |seed|
         schedule_rb_contents = <<-EOF
           swanson = CronSwanson::Whenever.new(self, seed: '#{seed}')
-          swanson.add do
+          swanson.schedule do
             rake 'test:job'
           end
         EOF
@@ -179,10 +179,10 @@ RSpec.describe CronSwanson::Whenever do
   end
 
   describe 'method_missing shenanigans' do
-    it 'should raise an error if invoked outside of an #add call' do
+    it 'should raise an error if invoked outside of an #schedule call' do
       expect {
         subject.rake
-      }.to raise_error 'CronSwanson::Whenever#method_missing invoked outside of CronSwanson::Whenever#add'
+      }.to raise_error 'CronSwanson::Whenever#method_missing invoked outside of CronSwanson::Whenever#schedule'
     end
   end
 end

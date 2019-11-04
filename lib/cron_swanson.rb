@@ -36,7 +36,15 @@ module CronSwanson
     offset_seconds
   end
 
-  def self.schedule(job_identifier, interval: default_interval)
+  # generate a cron schedule string
+  #
+  # the same input will always produce the same output.
+  #
+  # @param [String] job_identifier a job to generate a schedule for
+  # @param [Integer, ActiveSupport::Duration] interval how often should the job
+  #   be scheduled to run?
+  # @return [String] a schedule string like '38 4 * * *'
+  def self.build_schedule(job_identifier, interval: default_interval)
     if interval > SECONDS_PER_DAY
       raise ArgumentError, "interval must be less than 1 day (#{SECONDS_PER_DAY} seconds)."
     end

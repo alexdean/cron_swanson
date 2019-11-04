@@ -13,7 +13,7 @@ module CronSwanson
       end
 
       @whenever_job_list = whenever_job_list
-      @seed = seed
+      @seed = seed.to_s
       @in_schedule_method = false
       @whenever_jobs = []
     end

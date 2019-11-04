@@ -15,6 +15,11 @@ RSpec.describe CronSwanson::Whenever do
       subject = CronSwanson::Whenever.new(Whenever::JobList.new(''), seed: 'test-seed')
       expect(subject.seed).to eq 'test-seed'
     end
+
+    it 'can use non-strings as seeds' do
+      subject = CronSwanson::Whenever.new(Whenever::JobList.new(''), seed: :test_seed)
+      expect(subject.seed).to eq 'test_seed'
+    end
   end
 
   describe '#schedule' do

@@ -76,7 +76,6 @@ module CronSwanson
 
       runs_per_hour = SECONDS_PER_HOUR / interval
       runs_per_hour.times do |i|
-        puts "job_offset:#{job_offset} i:#{i} interval:#{interval}"
         minutes << job_offset_minutes + (i * interval_minutes)
       end
 

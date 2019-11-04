@@ -1,6 +1,6 @@
 # CronSwanson
 
-`CronSwanson` helps schedule cron jobs.
+`CronSwanson` helps distribute schedule cron jobs.
 
 ![Never half-ass two things.](whole-ass.jpg)
 
@@ -32,24 +32,24 @@ Or install it yourself as:
 
 ## Usage
 
-### schedule
+### build_schedule
 
-Use `schedule` to build a cron schedule. The supplied string is hashed to determine
-the run time of the job.
+Use `build_schedule` to build a cron schedule string. The supplied string is hashed
+to determine the run time of the job.
 
 ```ruby
-CronSwanson.schedule 'whiskey'
+CronSwanson.build_schedule 'whiskey'
 #=> "33 18 * * *"
 ```
 
 **To keep two applications running the same job from executing at once**, make the
-application name part of the schedule key.
+application name part of the build_schedule key.
 
 ```ruby
-CronSwanson.schedule 'application-a whiskey'
+CronSwanson.build_schedule 'application-a whiskey'
 #=> "4 19 * * *"
 
-CronSwanson.schedule 'application-b whiskey'
+CronSwanson.build_schedule 'application-b whiskey'
 #=> "11 7 * * *"
 ```
 
@@ -57,14 +57,14 @@ An `interval` (in seconds) can be supplied if you want a job to be run more than
 once/day. This `interval` must be a factor of 24 hours.
 
 ```ruby
-CronSwanson.schedule 'bacon', interval: 60 * 60 * 4
+CronSwanson.build_schedule 'bacon', interval: 60 * 60 * 4
 #=> "26 2,6,10,14,18,22 * * *"
 ```
 
 You can also use `ActiveSupport::Duration` instances.
 
 ```ruby
-CronSwanson.schedule 'bacon', interval: 4.hours
+CronSwanson.build_schedule 'bacon', interval: 4.hours
 #=> "26 2,6,10,14,18,22 * * *"
 ```
 
@@ -72,17 +72,18 @@ CronSwanson.schedule 'bacon', interval: 4.hours
 
 `CronSwanson` is built to integrate with the fantastic [whenever](https://github.com/javan/whenever) gem.
 
-`CronSwanson::Whenever.add` will calculate a run time for jobs by hashing the text
-of the job definitions in the given block.
+`#schedule` will calculate a run time for jobs by hashing the text of the job
+definitions in the given block. (Plus an optional seed string if one is supplied.)
 
-**NOTE**: This means that if you change the jobs in the block, you will also change the schedule time
-for these jobs.
+**NOTE**: This means that if you change the jobs in the block, or the seed, you will also
+change the schedule time for these jobs.
 
 #### Daily
 
 ```ruby
-# in config/schedule.rb
-CronSwanson::Whenever.add(self) do
+# in config/build_schedule.rb
+swanson = CronSwanson::Whenever.new(self, seed: 'application-name')
+swanson.schedule do
   rake 'sample:job'
 end
 ```
@@ -93,15 +94,17 @@ determined by `CronSwanson`.
 #### Multiple times/day
 
 ```ruby
-# in config/schedule.rb
+# in config/build_schedule.rb
 
 # with ActiveSupport
-CronSwanson::Whenever.add(self, interval: 4.hours) do
+swanson = CronSwanson::Whenever.new(self, seed: 'application-name')
+swanson.schedule(interval: 4.hours) do
   rake 'sample:job'
 end
 
 # without ActiveSupport
-CronSwanson::Whenever.add(self, interval: 60 * 60 * 4) do
+swanson = CronSwanson::Whenever.new(self, seed: 'application-name')
+swanson.schedule(interval: 60 * 60 * 4) do
   rake 'sample:job'
 end
 ```
@@ -111,10 +114,11 @@ end
 Any custom job types which have been defined will work.
 
 ```ruby
-# in config/schedule.rb
+# in config/build_schedule.rb
 job_type :ron, '/usr/bin/ron :task'
 
-CronSwanson::Whenever.add(self) do
+swanson = CronSwanson::Whenever.new(self, seed: 'application-name')
+swanson.schedule do
   ron 'bacon whiskey'
 end
 ```
@@ -125,15 +129,35 @@ Roles are supported. See the [whenever documentation](https://github.com/javan/w
 for more information on this.
 
 ```ruby
-CronSwanson::Whenever.add(self) do
+swanson = CronSwanson::Whenever.new(self, seed: 'application-name')
+swanson.schedule do
   rake 'will_run_on_all_roles'
 end
 
-# will only be added to servers with the :restricted role
-CronSwanson::Whenever.add(self, roles: [:restricted]) do
+# Added to servers with the :restricted role
+swanson.schedule(roles: [:restricted]) do
   rake 'restricted_only'
 end
 ```
+
+#### seeds
+
+Varying the seed string affects all jobs scheduled by that instance.
+
+```ruby
+swanson = CronSwanson::Whenever.new(self, seed: 'application-a')
+swanson.schedule do
+  rake 'job'
+end
+
+swanson = CronSwanson::Whenever.new(self, seed: 'application-b')
+swanson.schedule do
+  rake 'job'
+end
+```
+
+In this example, the job being scheduled is the same, but the schedule times will
+be different because the seed string is different.
 
 ## Development
 

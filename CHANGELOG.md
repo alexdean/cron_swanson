@@ -1,6 +1,18 @@
 # Changelog
 
-## 0.2.0 : "Under my utelage, you will grow from boys to men." : November 3, 2019
+## 0.3.0 : "Any dog under 50 pounds is a cat and cats are useless." : November 4, 2019
+
+New feature:
+
+  * Support for seed strings, to allow the same job to have distinct schedules
+    in various apps.
+
+Breaking changes:
+
+  * `whenever` integration changed from class methods to instance methods.
+  * Some methods were renamed.
+
+## 0.2.0 : "Under my tutelage, you will grow from boys to men." : November 3, 2019
 
 Improvements in whenever integration.
 

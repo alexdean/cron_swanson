@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2 : "I regret nothing. The end." : November 4, 2019
+
+Important bugfix: Previous versions would generate invalid schedule strings
+for intervals less than 1 hour in length.
+
 ## 0.3.0 : "Any dog under 50 pounds is a cat and cats are useless." : November 4, 2019
 
 New feature:

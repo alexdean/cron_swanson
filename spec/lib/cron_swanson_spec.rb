@@ -26,6 +26,10 @@ RSpec.describe CronSwanson do
       expect {
         CronSwanson.build_schedule('test_job', interval: 61)
       }.to raise_error 'A day (86400 seconds) must be evenly divisible by the given interval.'
+
+      expect {
+        CronSwanson.build_schedule('test_job', interval: 7)
+      }.to raise_error 'A day (86400 seconds) must be evenly divisible by the given interval.'
     end
 
     describe 'without a specified interval' do
@@ -43,6 +47,12 @@ RSpec.describe CronSwanson do
         twelve_hours = 60 * 60 * 12
         expect(CronSwanson.build_schedule('test_job',       interval: twelve_hours)).to eq "26 2,14 * * *"
         expect(CronSwanson.build_schedule('other_test_job', interval: twelve_hours)).to eq "48 0,12 * * *"
+      end
+
+      it 'supports intervals less than 1 hour' do
+        expect(CronSwanson.build_schedule('test_job', interval: 60 * 10)).to eq "2,12,22,32,42,52 * * * *"
+        expect(CronSwanson.build_schedule('other_test', interval: 60 * 10)).to eq "1,11,21,31,41,51 * * * *"
+        expect(CronSwanson.build_schedule('final_test', interval: 60 * 10)).to eq "7,17,27,37,47,57 * * * *"
       end
     end
   end

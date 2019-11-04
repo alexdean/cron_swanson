@@ -5,7 +5,8 @@ require 'digest/sha2'
 # CronSwanson is a utility to generate run times for cron jobs which are
 # regular, but which vary per job.
 module CronSwanson
-  SECONDS_PER_HOUR = 60 * 60
+  SECONDS_PER_MINUTE = 60
+  SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60
   SECONDS_PER_DAY = SECONDS_PER_HOUR * 24
 
   def self.default_interval
@@ -54,16 +55,32 @@ module CronSwanson
         "divisible by the given interval."
     end
 
-    # figure out how many times job will happen in a day
-    runs_per_day = SECONDS_PER_DAY / interval
+    job_offset = offset(job_identifier, interval: interval)
 
-    run_at = Time.at(offset(job_identifier, interval: interval)).utc
+    if interval >= SECONDS_PER_HOUR
+      # figure out how many times job will happen in a day
+      runs_per_day = SECONDS_PER_DAY / interval
 
-    hours = []
-    runs_per_day.times do |i|
-      hours << run_at.hour + (i * interval / SECONDS_PER_HOUR)
+      run_at = Time.at(job_offset).utc
+      hours = []
+      runs_per_day.times do |i|
+        hours << run_at.hour + (i * interval / SECONDS_PER_HOUR)
+      end
+
+      "#{run_at.min} #{hours.join(',')} * * *"
+    else
+      minutes = []
+
+      job_offset_minutes = job_offset / SECONDS_PER_MINUTE
+      interval_minutes = interval / SECONDS_PER_MINUTE
+
+      runs_per_hour = SECONDS_PER_HOUR / interval
+      runs_per_hour.times do |i|
+        puts "job_offset:#{job_offset} i:#{i} interval:#{interval}"
+        minutes << job_offset_minutes + (i * interval_minutes)
+      end
+
+      "#{minutes.join(',')} * * * *"
     end
-
-    "#{run_at.min} #{hours.join(',')} * * *"
   end
 end

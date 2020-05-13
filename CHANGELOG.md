@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3 : "There has never been a sadness that can’t been cured by breakfast food." : May 13, 2020
+
+Remove 1 annoying `puts` statement.
+
 ## 0.3.2 : "I regret nothing. The end." : November 4, 2019
 
 Important bugfix: Previous versions would generate invalid schedule strings

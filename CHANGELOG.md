@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.4 : "Dear frozen yogurt, you are the celery of desserts. Be ice cream or be nothing." : Jan 1, 2021
+
+Note that gem doesn't currently work with ruby 3.
+
 ## 0.3.3 : "There has never been a sadness that can’t been cured by breakfast food." : May 13, 2020
 
 Remove 1 annoying `puts` statement.

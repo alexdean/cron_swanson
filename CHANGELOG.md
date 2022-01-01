@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.4 : "Dear frozen yogurt, you are the celery of desserts. Be ice cream or be nothing." : Jan 1, 2021
+## 0.3.4 : "Dear frozen yogurt, you are the celery of desserts. Be ice cream or be nothing." : Jan 1, 2022
 
 Note that gem doesn't currently work with ruby 3.
 

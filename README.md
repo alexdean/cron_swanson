@@ -12,7 +12,7 @@ random) but which are fuzzed/shifted depending on some input.
 
 ## Build Status
 
-[![Build Status](https://travis-ci.org/alexdean/cron_swanson.svg?branch=master)](https://travis-ci.org/alexdean/cron_swanson)
+[![Test Suite](https://github.com/alexdean/cron_swanson/actions/workflows/rspec.yml/badge.svg)](https://github.com/alexdean/cron_swanson/actions/workflows/rspec.yml)
 
 ## Installation
 

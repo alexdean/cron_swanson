@@ -81,9 +81,9 @@ module CronSwanson
 
       # now that we know when to schedule the jobs, actually pass the block to Whenever
       if roles.size > 0
-        @whenever_job_list.every(schedule, roles: roles, &Proc.new)
+        @whenever_job_list.every(schedule, roles: roles, &block)
       else
-        @whenever_job_list.every(schedule, &Proc.new)
+        @whenever_job_list.every(schedule, &block)
       end
 
       @in_schedule_method = false

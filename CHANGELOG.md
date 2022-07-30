@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0 : "I'd wish you the best of luck, but luck is is a concept created by the weak to explain their failures." : July 30, 2022
+
+Compatibility with ruby 3+. Thanks to @mzagaja! [PR #4](https://github.com/alexdean/cron_swanson/pull/4)
+
 ## 0.3.4 : "Dear frozen yogurt, you are the celery of desserts. Be ice cream or be nothing." : Jan 1, 2022
 
 Note that gem doesn't currently work with ruby 3.
